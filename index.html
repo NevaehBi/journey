@@ -1,0 +1,1047 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Journay - Interactive Story</title>
+  <style>
+       * {padding: 0; margin: 0}
+  </style>
+</head>
+
+<body>
+  <audio loop="60" autoplay="true">
+    <source src="images/bgmusic.mp3" type="audio/mp3"/>
+    Your browser does not support HTML5 audio.
+</audio>
+  <script src="pixi/pixi.min.js"></script>
+  <script src="dist/eventemitter3-timer.min.js"></script>
+  <script>
+  //Aliases
+  let Application = PIXI.Application,
+      Container = PIXI.Container,
+      loader = PIXI.loader,
+      resources = PIXI.loader.resources,
+      Graphics = PIXI.Graphics,
+      TextureCache = PIXI.utils.TextureCache,
+      Sprite = PIXI.Sprite,
+      Text = PIXI.Text,
+      TextStyle = PIXI.TextStyle;
+
+  //Create a Pixi Application
+  let app = new Application({
+      antialiasing: true,
+      transparent: false,
+      resolution: 1
+    }
+  );
+  app.renderer.backgroundColor = 0xEDF4F9;
+  app.renderer.view.style.position = "absolute";
+  app.renderer.view.style.display = "block";
+  app.renderer.autoResize = true;
+  app.renderer.resize(window.innerWidth, window.innerHeight);
+
+ //Add the canvas that Pixi automatically created for you to the HTML document
+  document.body.appendChild(app.view);
+
+loader
+    .add("images/drawingBoard.png")
+    .add('images/drawing.json')
+    .add('images/flower.json')
+    .add('images/measure.json')
+    .add('images/star.json')
+    .add('images/travel.json')
+    .add("images/dsBG.png")
+    .add("images/msBG.png")
+    .add('images/drawingBG.png')
+    .add('images/floweringBG.png')
+    .add('images/measuringBG.png')
+    .add("images/flowerBG.png")
+    .add("images/singleFlower.png")
+    .add("images/measureBG.png")
+    .add("images/starringBG.png")
+    .add("images/travellingBG.png")
+    .add("images/travelBGback.png")
+    .add("images/travelBGfront.png")
+    .load(setup);
+
+
+//define the block scoped variables
+let state, scene1, scene2, scene3, scene4, scene5, drawingScene, floweringScene, measuringScene, staringScene, drawingBoard, drawingBG, floweringBG, measuringBG, starringBG, travellingBG, dsBG, flowerBoard, starBoard, travelBoard, tsBG, tsBGfront, drawingWalking, animWalk1, kw1, kw2, kw3, kw4, kw5, firstLoop;
+//set the timer
+const timer = new EE3Timer.Timer(4000);
+const timer2 = new EE3Timer.Timer(5000);
+const timer3 = new EE3Timer.Timer(4000);
+const timer4 = new EE3Timer.Timer(3000);
+const timer5 = new EE3Timer.Timer(5000);
+
+function setup(){
+
+  // from the scene1
+  state = playScene1;
+
+  //walking loop
+  firstLoop = true;
+  //create scene 1
+  scene1 = new Container();
+  app.stage.addChild(scene1);
+  drawingBoard = new Sprite.fromImage('images/drawingBoard.png');
+  // Set the initial position
+  drawingBoard.anchor.set(0.5);
+  drawingBoard.x = -100;
+  drawingBoard.y = app.screen.height / 2;
+  drawingBoard.width = 180;
+  drawingBoard.height = 340;
+
+  // Opt-in to interactivity
+  drawingBoard.interactive = true;
+
+  // Shows hand cursor
+  drawingBoard.buttonMode = true;
+
+  // Pointers normalize touch and mouse
+  drawingBoard.on('pointerdown', drawingSceneAni);
+
+  scene1.addChild(drawingBoard);
+
+  dsBG = new Sprite.fromImage('images/dsBG.png');
+  dsBG.anchor.set(0.5);
+  dsBG.scale.set(0.6);
+  dsBG.x = app.screen.width / 2 - 120;
+  dsBG.y = app.screen.height / 2;
+
+  drawingScene = new Container();
+  app.stage.addChild(drawingScene);
+  drawingScene.addChild(dsBG);
+  drawingScene.visible = false;
+
+  // create the big background
+  drawingBG = new Sprite.fromImage('images/drawingBG.png');
+  drawingBG.anchor.set(0.5);
+  drawingBG.scale.set(0.7);
+  drawingBG.alpha = 1;
+  drawingBG.x = app.screen.width / 2;
+  drawingBG.y = app.screen.height / 2;
+  drawingScene.addChild(drawingBG);
+
+  // create an array of textures from an image path
+  var frames = [];
+
+  for (var i = 1; i < 7; i++) {
+
+      // magically works since the spritesheet was loaded with the pixi loader
+      frames.push(PIXI.Texture.fromFrame('0' + i + '.png'));
+  }
+
+  // create an AnimatedSprite
+  var anim = new PIXI.extras.AnimatedSprite(frames);
+  anim.x = app.screen.width / 2;
+  anim.y = app.screen.height / 2 + 30;
+  anim.anchor.set(0.5);
+
+  anim.animationSpeed = 0.06;
+
+
+  scene1.addChild(anim);
+  anim.play();
+
+  //create scene 2
+  scene2 = new Container();
+  app.stage.addChild(scene2);
+  flowerBoard = new Sprite.fromImage('images/flowerBG.png');
+  // Set the initial position
+  flowerBoard.anchor.set(0.5);
+  flowerBoard.scale.set(0.6);
+  flowerBoard.x = -180;
+  flowerBoard.y = app.screen.height / 2 + 100;
+
+
+  // Opt-in to interactivity
+  flowerBoard.interactive = true;
+
+  // Shows hand cursor
+  flowerBoard.buttonMode = true;
+
+  // Pointers normalize touch and mouse
+  flowerBoard.on('pointerdown', floweringSceneAni);
+
+  scene2.addChild(flowerBoard);
+
+  fsBG = new Sprite.fromImage('images/flowerBG2.png');
+  fsBG.anchor.set(0.5);
+  fsBG.scale.set(0.6);
+  fsBG.x = app.screen.width / 2 - 120;
+  fsBG.y = app.screen.height / 2 + 100;
+
+  // create the big background
+  floweringBG = new Sprite.fromImage('images/floweringBG.png');
+  floweringBG.anchor.set(0.5);
+  floweringBG.scale.set(0.7);
+  floweringBG.alpha = 1;
+  floweringBG.x = app.screen.width / 2 - 350;
+  floweringBG.y = app.screen.height / 2;
+
+
+  floweringScene = new Container();
+  app.stage.addChild(floweringScene);
+  floweringScene.addChild(floweringBG);
+  floweringScene.addChild(fsBG);
+  floweringScene.visible = false;
+
+  // create an array of textures from an image path
+  var frames2 = [];
+
+  for (var i = 1; i < 7; i++) {
+      // var val = i < 10 ? '0' + i : i;
+
+      // magically works since the spritesheet was loaded with the pixi loader
+      frames2.push(PIXI.Texture.fromFrame('1' + i + '.png'));
+  }
+
+  // create an AnimatedSprite
+  var anim2 = new PIXI.extras.AnimatedSprite(frames2);
+
+
+
+  /*
+   * An AnimatedSprite inherits all the properties of a PIXI sprite
+   * so you can change its position, its anchor, mask it, etc
+   */
+  anim2.x = app.screen.width / 2;
+  anim2.y = app.screen.height / 2 + 30;
+  anim2.anchor.set(0.5);
+  anim2.animationSpeed = 0.06;
+
+
+  scene2.addChild(anim2);
+  anim2.play();
+  //create scene 3
+  scene3 = new Container();
+  app.stage.addChild(scene3);
+
+  measureBoard = new Sprite.fromImage('images/measureBG.png');
+  // Set the initial position
+  measureBoard.anchor.set(0.5);
+  measureBoard.x = -150;
+  measureBoard.y = app.screen.height / 2 - 50;
+  measureBoard.scale.set(0.6);
+
+  // Opt-in to interactivity
+  measureBoard.interactive = true;
+
+  // Shows hand cursor
+  measureBoard.buttonMode = true;
+
+  // Pointers normalize touch and mouse
+  measureBoard.on('pointerdown', measuringSceneAni);
+
+  scene3.addChild(measureBoard);
+
+  msBG = new Sprite.fromImage('images/measureBG.png');
+  msBG.anchor.set(0.5);
+  msBG.scale.set(0.6);
+  msBG.x = app.screen.width / 2;
+  msBG.y = app.screen.height / 2 - 50;
+
+  // create the big background
+  measuringBG = new Sprite.fromImage('images/measuringBG.png');
+  measuringBG.anchor.set(0.5);
+  measuringBG.scale.set(0.7);
+  measuringBG.alpha = 1;
+  measuringBG.x = app.screen.width / 2 - 60;
+  measuringBG.y = app.screen.height / 2;
+
+  measuringScene = new Container();
+  app.stage.addChild(measuringScene);
+  measuringScene.addChild(measuringBG);
+  measuringScene.addChild(msBG);
+  measuringScene.visible = false;
+
+  // create an array of textures from an image path
+  var frames3 = [];
+
+  for (var i = 1; i < 7; i++) {
+      // var val = i < 10 ? '0' + i : i;
+
+      // magically works since the spritesheet was loaded with the pixi loader
+      frames3.push(PIXI.Texture.fromFrame('2' + i + '.png'));
+  }
+
+  // create an anim3atedSprite
+  var anim3 = new PIXI.extras.AnimatedSprite(frames3);
+
+
+
+  /*
+   * An AnimatedSprite inherits all the properties of a PIXI sprite
+   * so you can change its position, its anchor, mask it, etc
+   */
+  anim3.x = app.screen.width / 2;
+  anim3.y = app.screen.height / 2 + 30;
+  anim3.anchor.set(0.5);
+  anim3.animationSpeed = 0.06;
+
+
+  scene3.addChild(anim3);
+  anim3.play();
+  //create scene 4
+  scene4 = new Container();
+  app.stage.addChild(scene4);
+
+  starBoard = new Sprite.fromImage('images/starBG.png');
+  // Set the initial position
+  starBoard.anchor.set(0.5);
+  starBoard.x = -100;
+  starBoard.y = app.screen.height / 2 + 180;
+  starBoard.scale.set(0.6);
+
+  // Opt-in to interactivity
+  starBoard.interactive = true;
+
+  // Shows hand cursor
+  starBoard.buttonMode = true;
+
+  // Pointers normalize touch and mouse
+  starBoard.on('pointerdown', staringSceneAni);
+
+  scene4.addChild(starBoard);
+
+  // create the big background
+  starringBG = new Sprite.fromImage('images/starringBG.png');
+  starringBG.anchor.set(0.5);
+  starringBG.scale.set(0.7);
+  starringBG.x = app.screen.width / 2 - 60;
+  starringBG.y = app.screen.height / 2;
+
+  staringScene = new Container();
+  app.stage.addChild(staringScene);
+  staringScene.addChild(starringBG);
+  staringScene.visible = false;
+
+  // create an array of textures from an image path
+  var frames4 = [];
+
+  for (var i = 1; i < 7; i++) {
+      // var val = i < 10 ? '0' + i : i;
+
+      // magically works since the spritesheet was loaded with the pixi loader
+      frames4.push(PIXI.Texture.fromFrame('3' + i + '.png'));
+  }
+
+  // create an AnimatedSprite
+  var anim4 = new PIXI.extras.AnimatedSprite(frames4);
+
+
+
+  /*
+   * An AnimatedSprite inherits all the properties of a PIXI sprite
+   * so you can change its position, its anchor, mask it, etc
+   */
+  anim4.x = app.screen.width / 2;
+  anim4.y = app.screen.height / 2 + 30;
+  anim4.anchor.set(0.5);
+  anim4.animationSpeed = 0.06;
+
+
+  scene4.addChild(anim4);
+  anim4.play();
+  //create scene 5
+  scene5 = new Container();
+  app.stage.addChild(scene5);
+  travelBoard = new Sprite.fromImage('images/travelBGfront.png');
+  // Set the initial position
+  travelBoard.anchor.set(0.5);
+  travelBoard.scale.set(0.6);
+  travelBoard.x = -100;
+  travelBoard.y = app.screen.height / 2 + 100;
+
+  // Opt-in to interactivity
+  travelBoard.interactive = true;
+
+  // Shows hand cursor
+  travelBoard.buttonMode = true;
+
+  // Pointers normalize touch and mouse
+  travelBoard.on('pointerdown', travellingSceneAni);
+
+  scene5.addChild(travelBoard);
+
+  tsBG = new Sprite.fromImage('images/travelBGback.png');
+  tsBG.anchor.set(0.5);
+  tsBG.scale.set(0.6);
+  tsBG.x = app.screen.width / 2;
+  tsBG.y = app.screen.height / 2 - 55;
+
+  travellingScene = new Container();
+  app.stage.addChild(travellingScene);
+
+  travellingScene.visible = false;
+
+  // create the front image
+  tsBGfront = new Sprite.fromImage('images/travelBGfront.png');
+  // Set the initial position
+  tsBGfront.anchor.set(0.5);
+  tsBGfront.scale.set(0.6);
+  tsBGfront.x = app.screen.width / 2;
+  tsBGfront.y = app.screen.height / 2 + 100;
+
+  // create the big background
+  travellingBG = new Sprite.fromImage('images/travellingBG.png');
+  travellingBG.anchor.set(0.5);
+  travellingBG.scale.set(0.7);
+  travellingBG.alpha = 1;
+  travellingBG.x = app.screen.width / 2;
+  travellingBG.y = app.screen.height / 2;
+  travellingScene.addChild(travellingBG);
+  travellingScene.addChild(tsBG);
+
+
+  // create an array of textures from an image path
+  var frames5 = [];
+
+  for (var i = 1; i < 7; i++) {
+
+      // magically works since the spritesheet was loaded with the pixi loader
+      frames5.push(PIXI.Texture.fromFrame('4' + i + '.png'));
+  }
+
+  // create an AnimatedSprite
+  var anim5 = new PIXI.extras.AnimatedSprite(frames5);
+  anim5.x = app.screen.width / 2;
+  anim5.y = app.screen.height / 2 + 30;
+  anim5.anchor.set(0.5);
+
+  anim5.animationSpeed = 0.06;
+
+
+  scene5.addChild(anim5);
+  anim5.play();
+
+
+
+  //Start the game loop
+  app.ticker.add(delta => gameLoop(delta));
+}
+
+
+
+function gameLoop(delta){
+
+    //Update the current game state:
+    state(delta);
+}
+
+
+function drawingSceneAni(){
+    state = stopMainScene;
+    drawingScene.visible = true;
+    dsBG.x = app.screen.width / 2 - 120;
+    drawingBoard.x = -100;
+    drawingBG.x = app.screen.width / 2;
+
+    var dsAni = [];
+
+    for (var dsi = 1; dsi < 5; dsi++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        dsAni.push(PIXI.Texture.fromFrame('ds' + dsi + '.png'));
+
+    }
+
+    // create an AnimatedSprite
+    var dsm = new PIXI.extras.AnimatedSprite(dsAni);
+    drawingScene.addChild(dsm);
+    dsm.x = app.screen.width / 2;
+    dsm.y = app.screen.height / 2 + 30;
+    dsm.anchor.set(0.5);
+    dsm.animationSpeed = 0.03;
+
+    dsm.play();
+    dsm.loop = false;
+
+
+    timer.on('start', () => console.log('start'));
+    timer.on('end', elapsed  => {
+      if(elapsed === 4000){
+        drawingScene.removeChild(dsm);
+        keepWalking1();
+        kw1 = true;
+
+      }else{
+        console.log('end');
+      }
+    }, timer);
+
+    timer.start();
+
+}
+
+function floweringSceneAni(){
+    state = stopMainScene;
+    floweringScene.visible = true;
+    fsBG.x = app.screen.width / 2 - 120;
+    flowerBoard.x = -180;
+    floweringBG.x = app.screen.width / 2 - 350;
+
+    var fsAni = [];
+
+    for (var fsi = 1; fsi < 7; fsi++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        fsAni.push(PIXI.Texture.fromFrame('fs' + fsi + '.png'));
+
+    }
+
+    // create an AnimatedSprite
+    var fsm = new PIXI.extras.AnimatedSprite(fsAni);
+    floweringScene.addChild(fsm);
+    fsm.x = app.screen.width / 2;
+    fsm.y = app.screen.height / 2 + 30;
+    fsm.anchor.set(0.5);
+    fsm.animationSpeed = 0.02;
+
+    fsm.play();
+    fsm.loop = false;
+
+    timer2.on('start', () => console.log('start'));
+    timer2.on('end', elapsed => {
+      if(elapsed === 5000){
+        console.log('Reset and count to 5 seconds');
+        floweringScene.removeChild(fsm);
+        keepWalking2();
+        kw2 = true;
+
+
+      }else{
+        console.log('end');
+      }
+    }, timer2);
+
+    timer2.start();
+
+}
+
+function measuringSceneAni(){
+    state = stopMainScene;
+    measuringScene.visible = true;
+    msBG.x = app.screen.width / 2;
+    measureBoard.x = -150;
+    measuringBG.x = app.screen.width / 2 - 60;
+
+    var msAni = [];
+
+    for (var msi = 1; msi < 5; msi++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        msAni.push(PIXI.Texture.fromFrame('ms' + msi + '.png'));
+
+    }
+
+    // create an AnimatedSprite
+    var msm = new PIXI.extras.AnimatedSprite(msAni);
+    measuringScene.addChild(msm);
+    msm.x = app.screen.width / 2;
+    msm.y = app.screen.height / 2 + 30;
+    msm.anchor.set(0.5);
+
+    msm.animationSpeed = 0.015;
+
+    msm.play();
+    msm.loop = false;
+
+    timer3.on('start', () => console.log('start'));
+    timer3.on('end', elapsed => {
+      if(elapsed === 4000){
+        console.log('Reset and count to 5 seconds');
+        measuringScene.removeChild(msm);
+        keepWalking3();
+        kw3 = true;
+
+
+      }else{
+        console.log('end');
+      }
+    }, timer3);
+
+    timer3.start();
+
+}
+
+function staringSceneAni(){
+    state = stopMainScene;
+    staringScene.visible = true;
+    starBoard.x = -100;
+    starringBG.x = app.screen.width / 2 - 60;
+
+    var ssAni = [];
+
+    for (var ssi = 1; ssi < 4; ssi++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        ssAni.push(PIXI.Texture.fromFrame('ss' + ssi + '.png'));
+
+    }
+
+    // create an AnimatedSprite
+    var ssm = new PIXI.extras.AnimatedSprite(ssAni);
+    staringScene.addChild(ssm);
+    ssm.x = app.screen.width / 2;
+    ssm.y = app.screen.height / 2 + 20;
+    ssm.anchor.set(0.5);
+    ssm.animationSpeed = 0.03;
+
+    ssm.play();
+    ssm.loop = false;
+
+    timer4.on('start', () => console.log('start'));
+    timer4.on('end', elapsed => {
+      if(elapsed === 3000){
+        console.log('Reset and count to 4 seconds');
+        staringScene.removeChild(ssm);
+        keepWalking4();
+        kw4 = true;
+
+
+      }else{
+        console.log('end');
+      }
+    }, timer4);
+
+    timer4.start();
+
+}
+
+function travellingSceneAni(){
+    state = stopMainScene;
+    travellingScene.visible = true;
+    tsBG.x = app.screen.width / 2;
+    tsBGfront.x = app.screen.width / 2;
+    travelBoard.x = -100;
+    travellingBG.x = app.screen.width / 2;
+
+    var tsAni = [];
+
+    for (var tsi = 1; tsi < 6; tsi++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        tsAni.push(PIXI.Texture.fromFrame('ts' + tsi + '.png'));
+
+    }
+
+    // create an AnimatedSprite
+    var tsm = new PIXI.extras.AnimatedSprite(tsAni);
+    travellingScene.addChild(tsm);
+    tsm.x = app.screen.width / 2;
+    tsm.y = app.screen.height / 2 + 20;
+    tsm.anchor.set(0.5);
+    tsm.animationSpeed = 0.03;
+
+    tsm.play();
+    tsm.loop = false;
+
+    travellingScene.addChild(tsBGfront);
+
+    timer5.on('start', () => console.log('start'));
+    timer5.on('end', elapsed => {
+      if(elapsed === 5000){
+        console.log('Reset and count to 5 seconds');
+        travellingScene.removeChild(tsm);
+        fading5();
+        kw5 = true;
+
+
+      }else{
+        console.log('end');
+      }
+    }, timer5);
+
+    timer5.start();
+
+}
+
+function keepWalking1(){
+  app.ticker.add(delta => {
+
+      if(drawingBG.x <= app.screen.width / 2 + drawingBG.width/2 - 100 && kw1 == true){
+        drawingBG.x += 0.7;
+        dsBG.x += 0.7;
+         // if(firstLoop == true){
+         //
+         //
+         // }
+         // else{
+         //   drawingBG.x += 0.7;
+         //   dsBG.x += 0.7;
+         //
+         // }
+
+
+
+      }
+    });
+
+
+
+      // if(drawingBG.x > app.screen.width / 2 + drawingBG.width/2 - 100){
+      //   drawingBG.x -= 0.7;
+      //   dsBG.x -= 0.7;
+      // }
+
+
+
+    // create an array of textures from an image path
+    var frames = [];
+
+    for (var i = 1; i < 7; i++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames.push(PIXI.Texture.fromFrame('0' + i + '.png'));
+    }
+
+    // create an AnimatedSprite
+    animWalk1 = new PIXI.extras.AnimatedSprite(frames);
+    animWalk1.x = app.screen.width / 2;
+    animWalk1.y = app.screen.height / 2 + 20;
+    animWalk1.anchor.set(0.5);
+    animWalk1.animationSpeed = 0.06;
+
+    drawingScene.addChild(animWalk1);
+    animWalk1.play();
+
+
+
+
+
+
+
+
+}
+
+function keepWalking2(){
+    app.ticker.add(delta => {
+
+      if(floweringBG.x <= app.screen.width / 2 + floweringBG.width/2 + 300 && kw2 == true){
+
+
+          floweringBG.x += 0.7;
+          fsBG.x += 0.7;
+
+
+
+      }
+
+
+    });
+    // create an array of textures from an image path
+    var frames2 = [];
+
+    for (var i = 1; i < 7; i++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames2.push(PIXI.Texture.fromFrame('1' + i + '.png'));
+    }
+
+    // create an AnimatedSprite
+    animWalk2 = new PIXI.extras.AnimatedSprite(frames2);
+    animWalk2.x = app.screen.width / 2;
+    animWalk2.y = app.screen.height / 2 + 20;
+    animWalk2.anchor.set(0.5);
+    animWalk2.animationSpeed = 0.06;
+
+    floweringScene.addChild(animWalk2);
+    animWalk2.play();
+
+
+}
+
+function keepWalking3(){
+    app.ticker.add(delta => {
+
+      if(measuringBG.x <= app.screen.width / 2 + measuringBG.width/2 && kw3 == true){
+
+          measuringBG.x += 0.7;
+          msBG.x += 0.7;
+
+
+
+      }
+
+    });
+    // create an array of textures from an image path
+    var frames3 = [];
+
+    for (var i = 1; i < 7; i++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames3.push(PIXI.Texture.fromFrame('2' + i + '.png'));
+    }
+
+    // create an AnimatedSprite
+    animWalk3 = new PIXI.extras.AnimatedSprite(frames3);
+    animWalk3.x = app.screen.width / 2;
+    animWalk3.y = app.screen.height / 2 + 20;
+    animWalk3.anchor.set(0.5);
+    animWalk3.animationSpeed = 0.06;
+
+    measuringScene.addChild(animWalk3);
+    animWalk3.play();
+
+
+}
+
+function keepWalking4(){
+
+    app.ticker.add(delta => {
+
+      if(starringBG.x <= app.screen.width / 2 + starringBG.width/2 && kw4 == true){
+
+
+            starringBG.x += 0.7;
+
+        
+
+      }
+
+
+
+    });
+    // create an array of textures from an image path
+    var frames4 = [];
+
+    for (var i = 1; i < 7; i++) {
+        // var val = i < 10 ? '0' + i : i;
+
+        // magically works since the spritesheet was loaded with the pixi loader
+        frames4.push(PIXI.Texture.fromFrame('3' + i + '.png'));
+    }
+
+    // create an AnimatedSprite
+    animWalk4 = new PIXI.extras.AnimatedSprite(frames4);
+    animWalk4.x = app.screen.width / 2;
+    animWalk4.y = app.screen.height / 2 + 20;
+    animWalk4.anchor.set(0.5);
+    animWalk4.animationSpeed = 0.06;
+
+    staringScene.addChild(animWalk4);
+    animWalk4.play();
+
+
+}
+
+function fading5(){
+
+  if(kw5 == true){
+    app.ticker.add(delta => {
+
+      travellingBG.alpha -= 0.005;
+      tsBG.alpha -= 0.005;
+      tsBGfront.alpha -= 0.25;
+
+    });
+
+  }
+
+    // // create an array of textures from an image path
+    // var frames5 = [];
+    //
+    // for (var i = 1; i < 7; i++) {
+    //     // var val = i < 10 ? '0' + i : i;
+    //
+    //     // magically works since the spritesheet was loaded with the pixi loader
+    //     frames5.push(PIXI.Texture.fromFrame('4' + i + '.png'));
+    // }
+    //
+    // // create an AnimatedSprite
+    // var anim5 = new PIXI.extras.AnimatedSprite(frames5);
+    // anim5.x = app.screen.width / 2;
+    // anim5.y = app.screen.height / 2 + 20;
+    // anim5.anchor.set(0.5);
+    // anim5.animationSpeed = 0.06;
+    //
+    // travellingScene.addChild(anim5);
+    // anim5.play();
+
+
+}
+
+
+// change between different scenes
+
+function playScene1(){
+  //Set the game state to scene1
+  scene1.visible = true;
+  scene2.visible = false;
+  scene3.visible = false;
+  scene4.visible = false;
+  scene5.visible = false;
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+  drawingBoard.x += 0.7;
+  if(drawingBoard.x > app.screen.width + drawingBoard.width/2){
+    // from the scene2
+    state = playScene2;
+    drawingBoard.x = -100;
+
+  }
+
+}
+
+function playScene2(){
+  //Set the game state to scene2
+  scene1.visible = false;
+  scene2.visible = true;
+  scene3.visible = false;
+  scene4.visible = false;
+  scene5.visible = false;
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+  flowerBoard.x += 0.7;
+  if(flowerBoard.x > app.screen.width + flowerBoard.width/2){
+    // from the scene2
+    state = playScene3;
+    flowerBoard.x = -180;
+  }
+}
+
+function playScene3(){
+  //Set the game state to scene3
+  scene1.visible = false;
+  scene2.visible = false;
+  scene3.visible = true;
+  scene4.visible = false;
+  scene5.visible = false;
+
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+  measureBoard.x += 0.7;
+  if(measureBoard.x > app.screen.width + measureBoard.width/2){
+    // from the scene2
+    state = playScene4;
+    measureBoard.x = -150;
+  }
+
+}
+
+function playScene4(){
+  //Set the game state to scene4
+  scene1.visible = false;
+  scene2.visible = false;
+  scene3.visible = false;
+  scene4.visible = true;
+  scene5.visible = false;
+
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+  starBoard.x += 0.7;
+  if(starBoard.x > app.screen.width + starBoard.width/2){
+    // from the scene2
+    state = playScene5;
+    starBoard.x = -100;
+
+  }
+
+}
+
+function playScene5(){
+  //Set the game state to scene5
+  scene1.visible = false;
+  scene2.visible = false;
+  scene3.visible = false;
+  scene4.visible = false;
+  scene5.visible = true;
+
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+  travelBoard.x += 0.7;
+  if(travelBoard.x > app.screen.width + travelBoard.width/2){
+    // from the scene2
+    state = playScene1;
+    travelBoard.x = -100;
+
+  }
+
+}
+
+function stopMainScene(){
+  scene1.visible = false;
+  scene2.visible = false;
+  scene3.visible = false;
+  scene4.visible = false;
+  scene5.visible = false;
+  //start the animation
+  timer.timerManager.update(app.ticker.elapsedMS);
+
+  if(drawingBG.x > app.screen.width / 2 + drawingBG.width/2 - 100 && drawingScene.visible == true){
+    // from the scene3
+    state = playScene2;
+    drawingScene.visible = false;
+    drawingBG.x = app.screen.width / 2;
+    drawingScene.removeChild(animWalk1);
+    timer.stop(); // stop the timer
+    timer.reset(); //Reset the timer
+    kw1 = false;
+    firstLoop =false;
+
+  }
+
+  if(floweringBG.x > app.screen.width / 2 + floweringBG.width/2 + 300 && floweringScene.visible == true){
+    // from the scene3
+    state = playScene3;
+    floweringScene.visible = false;
+    floweringBG.x = app.screen.width / 2;
+    floweringScene.removeChild(animWalk2);
+    timer2.stop(); // stop the timer
+    timer2.reset(); //Reset the timer
+    kw2 = false;
+    firstLoop =false;
+  }
+
+  if(measuringBG.x > app.screen.width / 2 + measuringBG.width/2 && measuringScene.visible == true){
+    // from the scene4
+    state = playScene4;
+    measuringScene.visible = false;
+    measuringBG.x = app.screen.width / 2;
+    measuringScene.removeChild(animWalk3);
+    timer3.stop(); // stop the timer
+    timer3.reset(); //Reset the timer
+    kw3 = false;
+    firstLoop =false;
+  }
+
+  if(starringBG.x > app.screen.width / 2 + starringBG.width/2 && staringScene.visible == true){
+    // from the scene4
+    state = playScene5;
+    staringScene.visible = false;
+    starringBG.x = app.screen.width / 2;
+    staringScene.removeChild(animWalk4);
+    timer4.stop(); // stop the timer
+    timer4.reset(); //Reset the timer
+    kw4 = false;
+    firstLoop =false;
+  }
+
+
+  if(travellingBG.alpha <= 0 && travellingScene.visible == true){
+    // from the scene5
+    state = playScene1;
+    travellingScene.visible = false;
+    travellingBG.x = app.screen.width / 2;
+    timer5.stop(); // stop the timer
+    timer5.reset(); //Reset the timer
+    kw5 = false;
+    firstLoop =false;
+  }
+}
+
+
+  </script>
+</body>
+</html>
